@@ -34,6 +34,7 @@ dependencies:
   flutter_map_marker_cluster: ^1.0.0
   graphs: ^2.3.2
   latlong2: 0.9.1
+  flutter_spirites: ^0.5.0
 
 
   # The following adds the Cupertino Icons font to your application.

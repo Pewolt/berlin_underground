@@ -1,0 +1,10 @@
+Gegeben sind UBahnLinien mir Stationen.
+
+Wenn das Spiel startet werden 2 Stationen ausgewählt, welche nicht auf der selben Linie liegen.
+
+Der Spieler entscheidet dann in welche Richtung er fahren möchte. Der Spieler fährt dann solange in diese Richtung, bis er in eine ander Linie umsteigen kann. 
+Jetzt kann der Spieler wählen, in welche Linie und welche Richtung er umsteigt. 
+Diese 2 Schritte werden dann so lange wiederholt bis der Spieler an der Endstation angekommen ist.
+
+In der Darstellung soll dem Spieler immer angezeigt werden in welcher Bahn er sich gerade befindet und in welche Richtung er fährt. 
+Beim umsteigen soll ihm das gleich angezeigt werden.
