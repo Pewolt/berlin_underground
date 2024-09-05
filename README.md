@@ -19,13 +19,14 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 ## TODO
+
 - Start- und Endpunkte auf der Karte markieren
 - aktuelle Position auf der Karte markieren
 - U-Bahn-Linien auf der Karte benennen
 - Enden der U-Bahn-Linien benennen
 - Ziel erreicht verbessern
 -   > Geschafft erscheint direkt
-    > Zeit ausgeben
+-   > Zeit ausgeben
 - Zeiten importieren
 - Zeiten berechnen
 - Schnellste Zeit berechnen (evt. vorher berechnen und dann die Ergebnisse importieren)
