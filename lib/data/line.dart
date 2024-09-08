@@ -6,12 +6,14 @@ class Line {
   final List<Station> stations; // Reihenfolge der Stationen
   final String colour; // Farbcode der Linie
   final Map<String, List<LatLng>> geometries; // Geometrien zwischen den Stationen
+  final List<int> times;
 
   Line({
     required this.name,
     required this.stations,
     required this.colour,
     required this.geometries,
+    required this.times,
   });
 
   // Hole die erste Station der Linie (für Richtung Rückwärts)

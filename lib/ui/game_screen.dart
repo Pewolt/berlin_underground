@@ -23,7 +23,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _loadGame() async {
     final lines = <Line>[]; // Lade die Linien hier
-    final dataLoader = DataLoader('assets/underground.geojson', lines); // Beispielpfad
+    final dataLoader = DataLoader('assets/underground.geojson', lines); 
     await dataLoader.loadUbahnConnections();
     setState(() {
       _game = UbahnGame(lines);
@@ -51,8 +51,9 @@ class _GameScreenState extends State<GameScreen> {
                             children: [
                               Text('Aktuelle Station: ${_game!.currentStation!.name}'),
                               Text('Aktuelle Linie: ${_game!.currentLine!.name}'),
-                              Text('Richtung: ${_game!.getCurrentDirection()}'), // Aktuelle Richtung anzeigen
-                              Text('Ziel: ${_game!.endStation!.name}'), // Ziel dauerhaft anzeigen
+                              Text('Richtung: ${_game!.getCurrentDirection()}'),
+                              Text('Ziel: ${_game!.endStation!.name}'),
+                              Text('Zeit in Minuten: ${_game!.traveldTime.toString()}'),
                               if (_game!.getAvailableLines().isNotEmpty)
                                 Text(
                                   'Umsteigen möglich in Linien: ${_game!.getAvailableLines().map((line) => line.name).join(', ')}',
@@ -98,7 +99,7 @@ class _GameScreenState extends State<GameScreen> {
           // Rechte Seite: Zeigt die Karte mit den Strecken
           Expanded(
             flex: 6,
-            child: FlutterMapWidget(_game),
+            child: FlutterMapWidget(_game, _gameStarted),
           ),
         ],
       ),
@@ -130,7 +131,7 @@ class _GameScreenState extends State<GameScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Spiel beendet'),
-          content: const Text('Du hast die Zielstation erreicht!'),
+          content: Text('Du hast die Zielstation in ${_game!.traveldTime.toString()} Minuten erreicht!'),
           actions: [
             TextButton(
               onPressed: () {
@@ -232,26 +233,31 @@ class _GameScreenState extends State<GameScreen> {
 
 class FlutterMapWidget extends StatelessWidget {
   final UbahnGame? game;
+  bool gameStarted;
 
-  FlutterMapWidget(this.game);
+  FlutterMapWidget(this.game, this.gameStarted);
 
   @override
   Widget build(BuildContext context) {
     return game == null
         ? const Center(child: CircularProgressIndicator())
         : FlutterMap(
-            options: MapOptions(
-              center: LatLng(52.5200, 13.4050),
-              zoom: 12,
+            options: const MapOptions(
+              initialCenter: LatLng(52.508, 13.4050),
+              initialZoom: 10.5,
               minZoom: 10.0,
               maxZoom: 15.0,
               interactiveFlags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
             ),
             children: [
               PolylineLayer(
-                polylines: game!.createPolylines(),
+                polylines: game!.createPolylines(gameStarted),
+              ),
+              MarkerLayer(
+                markers: game!.createMarkers(gameStarted),  // Hier fügen wir Marker hinzu
               ),
             ],
           );
   }
 }
+

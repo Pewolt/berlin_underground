@@ -1,12 +1,16 @@
+import 'package:latlong2/latlong.dart';
+
 import 'line.dart';
 
 class Station {
   final String name;
   final List<Line> lines; // Liste der Linien, die an dieser Station halten
+  final LatLng coordinates;
 
   Station({
     required this.name,
     required this.lines,
+    required this.coordinates,
   });
 
   // Methode, um festzustellen, ob diese Station von einer bestimmten Linie bedient wird
