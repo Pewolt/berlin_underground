@@ -50,7 +50,7 @@ class DataLoader {
       // Linie in der Liste lines finden oder neue Linie erstellen
       var line = lines.firstWhere(
         (l) => l.name == lineName,
-        orElse: () => Line(name: lineName, stations: [], colour: colour, geometries: {}, times: []),
+        orElse: () => Line(name: lineName, stations: [], colour: colour, geometries: {}, times: {}),
       );
 
       // Wenn die Linie neu ist, füge sie zu lines hinzu
@@ -67,7 +67,7 @@ class DataLoader {
       }
 
       // Zeit für die Verbindung speichern
-      line.times.add(time);
+      line.times['${fromStation.name}-${toStation.name}'] = time;
 
       // Geometrie zwischen den beiden Stationen speichern
       line.geometries['${fromStation.name}-${toStation.name}'] = coordinates;

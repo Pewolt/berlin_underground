@@ -6,7 +6,7 @@ class Line {
   final List<Station> stations; // Reihenfolge der Stationen
   final String colour; // Farbcode der Linie
   final Map<String, List<LatLng>> geometries; // Geometrien zwischen den Stationen
-  final List<int> times;
+  final Map<String, int> times;
 
   Line({
     required this.name,
@@ -50,6 +50,15 @@ class Line {
       return geometries['${fromStation.name}-${toStation.name}'];
     } else {
       return geometries['${toStation.name}-${fromStation.name}'];
+    }
+  }
+
+  // Hole die Geometrie (LatLng-Punkte) zwischen zwei Stationen
+  int? getTime(Station fromStation, Station toStation) {
+    if (times['${fromStation.name}-${toStation.name}'] != null) {
+      return times['${fromStation.name}-${toStation.name}'];
+    } else {
+      return times['${toStation.name}-${fromStation.name}'];
     }
   }
 

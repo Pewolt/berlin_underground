@@ -23,7 +23,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _loadGame() async {
     final lines = <Line>[]; // Lade die Linien hier
-    final dataLoader = DataLoader('assets/underground.geojson', lines); 
+    final dataLoader = DataLoader('assets/underground.geojson', lines);
     await dataLoader.loadUbahnConnections();
     setState(() {
       _game = UbahnGame(lines);
@@ -34,7 +34,7 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('U-Bahn Game'),
+        title: const Text('Berlin underground controller'),
       ),
       body: Row(
         children: [
@@ -131,7 +131,7 @@ class _GameScreenState extends State<GameScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Spiel beendet'),
-          content: Text('Du hast die Zielstation in ${_game!.traveldTime.toString()} Minuten erreicht!'),
+          content: Text('Du hast die Zielstation in ${_game!.traveldTime.toString()} Minuten erreicht! /n Die optimale Zeit ist ${_game!.fastestTime.toString()}'),
           actions: [
             TextButton(
               onPressed: () {
@@ -195,35 +195,37 @@ class _GameScreenState extends State<GameScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Umsteigen'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: availableLines.map((line) {
-              return Column(
-                children: [
-                  Text('Linie ${line.name}'),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _game!.changeLine(line); // Linie wechseln
-                        _game!.chooseDirection(true); // Vorwärtsrichtung wählen
-                        Navigator.of(context).pop(); // Dialog schließen
-                      });
-                    },
+          content: SingleChildScrollView( // Scroll-Container hinzufügen
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: availableLines.map((line) {
+                return Column(
+                  children: [
+                    Text('Linie ${line.name}'),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _game!.changeLine(line); // Linie wechseln
+                          _game!.chooseDirection(true); // Vorwärtsrichtung wählen
+                          Navigator.of(context).pop(); // Dialog schließen
+                        });
+                      },
                     child: Text('Richtung ${line.getLastStation().name}'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _game!.changeLine(line); // Linie wechseln
-                        _game!.chooseDirection(false); // Rückwärtsrichtung wählen
-                        Navigator.of(context).pop(); // Dialog schließen
-                      });
-                    },
-                    child: Text('Richtung ${line.getFirstStation().name}'),
-                  ),
-                ],
-              );
-            }).toList(),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _game!.changeLine(line); // Linie wechseln
+                          _game!.chooseDirection(false); // Rückwärtsrichtung wählen
+                          Navigator.of(context).pop(); // Dialog schließen
+                        });
+                      },
+                      child: Text('Richtung ${line.getFirstStation().name}'),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
           ),
         );
       },
@@ -246,7 +248,7 @@ class FlutterMapWidget extends StatelessWidget {
               initialCenter: LatLng(52.508, 13.4050),
               initialZoom: 10.5,
               minZoom: 10.0,
-              maxZoom: 15.0,
+              maxZoom: 13.0,
               interactiveFlags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
             ),
             children: [

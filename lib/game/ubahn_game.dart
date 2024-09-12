@@ -1,6 +1,6 @@
 import 'dart:math';
-import 'dart:ui';
 import 'package:berlin_underground/data/line.dart';
+import 'package:berlin_underground/data/shortest_time_loader.dart';
 import 'package:berlin_underground/data/station.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -16,25 +16,41 @@ class UbahnGame {
   bool forward = true;
   bool gameOver = false;
   int traveldTime = 0;
+  Map<String, int>? fastestPath;
+  int? fastestTime = 0;
 
-  UbahnGame(this.lines);
+  // Verbindungszeiten-Loader und Map
+  final Map<String, Map<String, int>> times = {};
+  TimesLoader? timesLoader;
 
-  void startGame() {
+  UbahnGame(this.lines) {
+    timesLoader = TimesLoader('assets/times.csv', times); // Lade die Verbindungszeiten
+  }
+
+  Future<void> startGame() async {
     gameOver = false;
     startStation = _getRandomStation();
     endStation = _getRandomStation(excludeStation: startStation);
     currentStation = startStation;
     currentLine = _getLineForStation(startStation!);
     traveldTime = 0;
-    print("Start Game at ${startStation!.name} on Line ${currentLine!.name}");
+    traveledPaths = [];
+
+    await timesLoader!.loadTimes(); // Lade die CSV-Daten
+    fastestTime = timesLoader!.getTimeBetweenStations(startStation!.name, endStation!.name);
+    print(fastestTime.toString());
+  }
+
+  // Methode zur Abfrage der Verbindungsdauer zwischen zwei Stationen
+  int? getConnectionTime(String fromStation, String toStation) {
+    return timesLoader!.getTimeBetweenStations(fromStation, toStation);
   }
 
   // Methode zur Auswahl einer zufälligen Station
   Station _getRandomStation({Station? excludeStation}) {
-    final random = Random();
     List<Station> allStations = lines.expand((line) => line.stations).toList();
     allStations.remove(excludeStation);
-    return allStations[random.nextInt(allStations.length)];
+    return allStations[Random().nextInt(allStations.length)];
   }
 
   // Methode, um die aktuelle Linie für eine Station zu finden
@@ -48,20 +64,18 @@ class UbahnGame {
       var nextStation = currentLine!.getNextStation(currentStation!, forward);
       if (nextStation != null) {
         _recordPath(currentStation!, nextStation);
-        traveldTime += 1;
+        traveldTime += currentLine!.getTime(currentStation!, nextStation)!;
         currentStation = nextStation;
 
         if (currentStation == endStation) {
           gameOver = true;
         }
 
-        print("Moved to ${currentStation!.name} on Line ${currentLine!.name}");
       } else {
         // Wenn am Ende der Linie: Richtung wechseln und Spieler benachrichtigen
         forward = !forward;
-        showMessageCallback("Sackgasse! Drehe um.");
+        showMessageCallback("Endstation. Bitte alle aussteigen!");
         traveldTime += 2;
-        print("Reached end of line: turning around at ${currentStation!.name}");
       }
     }
   }
@@ -82,7 +96,6 @@ class UbahnGame {
   // Methode zur Auswahl der Fahrtrichtung
   void chooseDirection(bool forwardDirection) {
     forward = forwardDirection;
-    print("Richtung gewählt: ${forward ? 'Vorwärts' : 'Rückwärts'}");
   }
 
   // Methode, um eine Linie zu wechseln
@@ -91,7 +104,6 @@ class UbahnGame {
       currentLine = newLine;
       forward = true; // Richtung neu setzen
       traveldTime += 2;
-      print("Changed to Line ${currentLine!.name} at ${currentStation!.name}");
     }
   }
 
@@ -105,11 +117,6 @@ class UbahnGame {
   // Zeigt die aktuelle Richtung an
   String getCurrentDirection() {
     return forward ? currentLine!.getLastStation().name : currentLine!.getFirstStation().name;
-  }
-
-  // Prüft, ob der Spieler am Ziel angekommen ist
-  bool hasReachedEndStation() {
-    return currentStation == endStation;
   }
 
   // Methode zur Erstellung der Polylines für die Karte
@@ -171,28 +178,28 @@ class UbahnGame {
   }
 
   List<Marker> createMarkers(bool gameStarted) {
-  // Hier erstellen wir die Marker für Start- und Endstation
-  List<Marker> markers = [];
+    // Hier erstellen wir die Marker für Start- und Endstation
+    List<Marker> markers = [];
 
-  // Wenn das Spiel noch nicht gestartet wurde gib eine leere Liste zurück
-  if (!gameStarted) {
-    return markers;
-  }
+    // Wenn das Spiel noch nicht gestartet wurde gib eine leere Liste zurück
+    if (!gameStarted) {
+      return markers;
+    }
 
-  if (startStation != null) {
-    markers.add(
-      Marker(
-        point: LatLng(startStation!.coordinates.latitude, startStation!.coordinates.longitude),
-        width: 20.0,  // Breite des Markers
-        height: 20.0,  // Höhe des Markers
-        child: const Icon(
-          Icons.start,
-          color: Colors.green,  // Startpunkt: grün
-          size: 40.0,
+    if (startStation != null) {
+      markers.add(
+        Marker(
+          point: LatLng(startStation!.coordinates.latitude, startStation!.coordinates.longitude),
+          width: 20.0,  // Breite des Markers
+          height: 20.0,  // Höhe des Markers
+          child: const Icon(
+            Icons.start,
+            color: Colors.green,  // Startpunkt: grün
+            size: 40.0,
+          ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
   if (endStation != null) {
     markers.add(
