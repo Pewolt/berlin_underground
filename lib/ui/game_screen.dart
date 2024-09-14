@@ -1,29 +1,33 @@
 import 'package:berlin_underground/data/data_loader.dart';
-import 'package:berlin_underground/data/line.dart'; 
+import 'package:berlin_underground/data/line.dart';
 import 'package:berlin_underground/game/ubahn_game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'dart:async';
 
 class GameScreen extends StatefulWidget {
+  const GameScreen({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _GameScreenState createState() => _GameScreenState();
 }
 
 class _GameScreenState extends State<GameScreen> {
   UbahnGame? _game;
   bool _gameStarted = false;
-  bool _directionChosen = false; // Neue Variable, um festzustellen, ob die Richtung gewählt wurde
+  String? _deadEndMessage;
 
   @override
   void initState() {
     super.initState();
     _loadGame();
-  } 
+  }
 
   Future<void> _loadGame() async {
     final lines = <Line>[]; // Lade die Linien hier
-    final dataLoader = DataLoader('assets/underground.geojson', lines);
+    final dataLoader = DataLoader('assets/underground.geojson', lines); // Beispielpfad
     await dataLoader.loadUbahnConnections();
     setState(() {
       _game = UbahnGame(lines);
@@ -34,159 +38,184 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Berlin underground controller'),
+        title: _gameStarted && _game!.currentStation != null
+            ? Text(
+                'Zeit: ${_game!.traveldTime} min | Aktuelle Station: ${_game!.currentStation!.name} | Ziel: ${_game!.endStation!.name}',
+                style: const TextStyle(fontSize: 16),
+              )
+            : const Text('Berlin underground controller'),
       ),
-      body: Row(
+      body: Stack(
         children: [
-          // Linke Seite: Zeigt aktuelle Station, Linie und Umsteigemöglichkeiten
-          Expanded(
-            flex: 4,
-            child: Container(
-              color: Colors.grey[200],
-              child: _gameStarted
-                  ? _directionChosen
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text('Aktuelle Station: ${_game!.currentStation!.name}'),
-                              Text('Aktuelle Linie: ${_game!.currentLine!.name}'),
-                              Text('Richtung: ${_game!.getCurrentDirection()}'),
-                              Text('Ziel: ${_game!.endStation!.name}'),
-                              Text('Zeit in Minuten: ${_game!.traveldTime.toString()}'),
-                              if (_game!.getAvailableLines().isNotEmpty)
-                                Text(
-                                  'Umsteigen möglich in Linien: ${_game!.getAvailableLines().map((line) => line.name).join(', ')}',
-                                ),
-                              if (_game!.gameOver)
-                                ElevatedButton(
-                                  onPressed: _startNewGame,
-                                  child: const Text('Neue Runde beginnen'),
-                                ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  if (_game!.gameOver) {
-                                    _showEndGameDialog();
-                                  } else {
-                                    _game!.moveToNextStation(_showMessage);
-                                  }
-                                  setState(() {}); // Aktualisiert die UI
-                                },
-                                child: const Text('Weiterfahren'),
-                              ),
-                              if (_game!.getAvailableLines().isNotEmpty)
-                                ElevatedButton(
-                                  onPressed: _showLineSelectionDialog, // Dialog zur Auswahl von Linie und Richtung
-                                  child: const Text('Umsteigen'),
-                                ),
-                            ],
+          // Die Karte nimmt den gesamten Bildschirm ein
+          FlutterMapWidget(_game, _gameStarted),
+          // Die Buttons unten rechts in der Ecke
+          Positioned(
+            bottom: 20,
+            right: 20,
+            child: _gameStarted
+                ? _game!.gameOver
+                    ? const SizedBox.shrink()
+                    : _buildGameControls()
+                : _buildSquareButton('Spiel starten', () {
+                    setState(() {
+                      _game!.startGame();
+                      _gameStarted = true;
+                    });
+                  }),
+          ),
+          // Nachricht bei Sackgasse
+          if (_deadEndMessage != null)
+            Positioned(
+              top: 10,
+              left: 10,
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                color: Colors.redAccent,
+                child: Text(
+                  _deadEndMessage!,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+          // Endbildschirm
+          if (_gameStarted && _game!.gameOver)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black54,
+                child: Center(
+                  child: Card(
+                    margin: const EdgeInsets.all(20),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('Spiel beendet!', style: TextStyle(fontSize: 24)),
+                          const SizedBox(height: 20),
+                          Text('Gefahrene Zeit: ${_game!.traveldTime} min'),
+                          Text('Bestmögliche Zeit: ${_game!.fastestTime} min'),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _game!.startGame();
+                                _deadEndMessage = null;
+                              });
+                            },
+                            child: const Text('Neustarten'),
                           ),
-                        )
-                      : _buildDirectionChoice() // Richtungsauswahl am Anfang des Spiels
-                  : Center(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _game!.startGame();
-                            _gameStarted = true;
-                          });
-                        },
-                        child: const Text('Spiel starten'),
+                        ],
                       ),
                     ),
+                  ),
+                ),
+              ),
             ),
-          ),
-          // Rechte Seite: Zeigt die Karte mit den Strecken
-          Expanded(
-            flex: 6,
-            child: FlutterMapWidget(_game, _gameStarted),
-          ),
         ],
       ),
     );
   }
 
-  void _showMessage(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Hinweis'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
+  // Widget zum Anzeigen der Spielsteuerung
+  Widget _buildGameControls() {
+    // Wenn keine aktuelle Linie ausgewählt ist
+    if (_game!.currentLine == null) {
+      List<Line> availableLines = _game!.getLinesAtCurrentStation();
+
+      if (availableLines.isEmpty) {
+        return const Text('Keine Linien verfügbar.');
+      } else if (availableLines.length == 1) {
+        // Nur eine Linie verfügbar, Richtung wählen
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              Text('Linie ${availableLines[0].name} wählen:'),
+              _buildSquareButton('Richtung ${availableLines[0].getLastStation().name}', () {
+                setState(() {
+                  _game!.chooseLineAndDirection(availableLines[0], true);
+                });
+              }),
+              _buildSquareButton('Richtung ${availableLines[0].getFirstStation().name}', () {
+                setState(() {
+                  _game!.chooseLineAndDirection(availableLines[0], false);
+                });
+              }),
+            ],
+          ),
         );
-      },
-    );
-  }
-
-  // Zeige ein Dialogfeld, wenn das Spiel beendet ist
-  void _showEndGameDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Spiel beendet'),
-          content: Text('Du hast die Zielstation in ${_game!.traveldTime.toString()} Minuten erreicht! Die optimale Zeit ist ${_game!.fastestTime.toString()}'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _startNewGame(); // Neue Runde starten
-              },
-              child: const Text('Neue Runde beginnen'),
+      } else {
+        // Mehrere Linien verfügbar, Linie und Richtung wählen
+        return Container(
+          width: 250, // Breite der Auswahlbox (anpassen nach Bedarf)
+          height: 350, // Höhe der Auswahlbox (anpassen nach Bedarf)
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const Text('Linie und Richtung wählen:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                for (var line in availableLines)
+                  Column(
+                    children: [
+                      Text('Linie ${line.name}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                      _buildSquareButton('Richtung ${line.getLastStation().name}', () {
+                        setState(() {
+                          _game!.chooseLineAndDirection(line, true);
+                        });
+                      }),
+                      _buildSquareButton('Richtung ${line.getFirstStation().name}', () {
+                        setState(() {
+                          _game!.chooseLineAndDirection(line, false);
+                        });
+                      }),
+                      const Divider(),
+                    ],
+                  ),
+              ],
             ),
-          ],
+          ),
         );
-      },
-    );
-  }
-
-  void _startNewGame() {
-    setState(() {
-      _game!.startGame();
-      _directionChosen = false;
-    });
-  }
-
-  // Widget zur Auswahl der Fahrtrichtung
-  Widget _buildDirectionChoice() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      }
+    } else {
+      // Linie ist ausgewählt, normale Steuerung anzeigen
+      return Column(
         children: [
-          Text('Aktuelle Station: ${_game!.currentStation!.name}'),
-          Text('Aktuelle Linie: ${_game!.currentLine!.name}'),
-          Text('Ziel: ${_game!.endStation!.name}'), // Ziel dauerhaft anzeigen
-          Text('Wähle die Fahrtrichtung auf der Linie ${_game!.currentLine!.name}:'),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _game!.chooseDirection(true); // Vorwärtsrichtung wählen
-                _directionChosen = true;
-              });
-            },
-            child: Text('Richtung ${_game!.currentLine!.getLastStation().name}'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _game!.chooseDirection(false); // Rückwärtsrichtung wählen
-                _directionChosen = true;
-              });
-            },
-            child: Text('Richtung ${_game!.currentLine!.getFirstStation().name}'),
-          ),
+          if (_game!.getAvailableLines().isNotEmpty)
+            _buildSquareButton('Umsteigen', () {
+              _showLineSelectionDialog();
+            }),
+          _buildSquareButton('Weiterfahren', () {
+            setState(() {
+              _game!.moveToNextStation(() => _showMessage(context, "Sackgasse! Drehe um."));
+            });
+          }),
         ],
+      );
+    }
+  }
+
+  // Funktion zur Erstellung von quadratischen Buttons mit runden Ecken
+  Widget _buildSquareButton(String label, VoidCallback onPressed) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0), // Geringerer Abstand zwischen den Buttons
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(150, 50), // Angepasste Größe
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0), // Runde Ecken
+          ),
+        ),
+        child: Text(label, textAlign: TextAlign.center),
       ),
     );
   }
 
-  // Zeige ein Dialogfeld zur Auswahl der Linie und der Richtung beim Umsteigen
+  // Zeige das Dialogfeld für den Linienwechsel
   Future<void> _showLineSelectionDialog() async {
     List<Line> availableLines = _game!.getAvailableLines();
 
@@ -195,33 +224,26 @@ class _GameScreenState extends State<GameScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Umsteigen'),
-          content: SingleChildScrollView( // Scroll-Container hinzufügen
+          content: SingleChildScrollView(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: availableLines.map((line) {
                 return Column(
                   children: [
                     Text('Linie ${line.name}'),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _game!.changeLine(line); // Linie wechseln
-                          _game!.chooseDirection(true); // Vorwärtsrichtung wählen
-                          Navigator.of(context).pop(); // Dialog schließen
-                        });
-                      },
-                    child: Text('Richtung ${line.getLastStation().name}'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _game!.changeLine(line); // Linie wechseln
-                          _game!.chooseDirection(false); // Rückwärtsrichtung wählen
-                          Navigator.of(context).pop(); // Dialog schließen
-                        });
-                      },
-                      child: Text('Richtung ${line.getFirstStation().name}'),
-                    ),
+                    _buildSquareButton('Richtung ${line.getLastStation().name}', () {
+                      setState(() {
+                        _game!.changeLine(line); // Linie wechseln
+                        _game!.chooseDirection(true); // Vorwärtsrichtung wählen
+                        Navigator.of(context).pop(); // Dialog schließen
+                      });
+                    }),
+                    _buildSquareButton('Richtung ${line.getFirstStation().name}', () {
+                      setState(() {
+                        _game!.changeLine(line); // Linie wechseln
+                        _game!.chooseDirection(false); // Rückwärtsrichtung wählen
+                        Navigator.of(context).pop(); // Dialog schließen
+                      });
+                    }),
                   ],
                 );
               }).toList(),
@@ -231,6 +253,18 @@ class _GameScreenState extends State<GameScreen> {
       },
     );
   }
+
+  // Methode zur Anzeige von Nachrichten
+  void _showMessage(BuildContext context, String message) {
+    setState(() {
+      _deadEndMessage = message;
+    });
+    Future.delayed(const Duration(seconds: 3), () {
+      setState(() {
+        _deadEndMessage = null;
+      });
+    });
+  }
 }
 
 // ignore: must_be_immutable
@@ -238,7 +272,7 @@ class FlutterMapWidget extends StatelessWidget {
   final UbahnGame? game;
   bool gameStarted;
 
-  FlutterMapWidget(this.game, this.gameStarted);
+  FlutterMapWidget(this.game, this.gameStarted, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -250,6 +284,7 @@ class FlutterMapWidget extends StatelessWidget {
               initialZoom: 10.5,
               minZoom: 10.0,
               maxZoom: 13.0,
+              // ignore: deprecated_member_use
               interactiveFlags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
             ),
             children: [
@@ -257,10 +292,9 @@ class FlutterMapWidget extends StatelessWidget {
                 polylines: game!.createPolylines(gameStarted),
               ),
               MarkerLayer(
-                markers: game!.createMarkers(gameStarted),  // Hier fügen wir Marker hinzu
+                markers: game!.createMarkers(gameStarted), // Hier fügen wir die angepassten Marker hinzu
               ),
             ],
           );
   }
 }
-
