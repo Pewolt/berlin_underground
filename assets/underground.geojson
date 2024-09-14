@@ -93,7 +93,7 @@
        {
           "type":"Feature",
           "properties":{
-             "fromStation":"Seestr",
+             "fromStation":"Seestr.",
              "toStation":"Leopoldplatz",
              "line":"U6",
              "km":0.557,

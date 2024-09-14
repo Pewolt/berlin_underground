@@ -24,7 +24,7 @@ class UbahnGame {
   TimesLoader? timesLoader;
 
   UbahnGame(this.lines) {
-    timesLoader = TimesLoader('assets/times.csv', times); // Lade die Verbindungszeiten
+    timesLoader = TimesLoader('assets/times.json'); // Lade die Verbindungszeiten
   }
 
   Future<void> startGame() async {

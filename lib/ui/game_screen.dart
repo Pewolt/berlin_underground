@@ -131,7 +131,7 @@ class _GameScreenState extends State<GameScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Spiel beendet'),
-          content: Text('Du hast die Zielstation in ${_game!.traveldTime.toString()} Minuten erreicht! /n Die optimale Zeit ist ${_game!.fastestTime.toString()}'),
+          content: Text('Du hast die Zielstation in ${_game!.traveldTime.toString()} Minuten erreicht! Die optimale Zeit ist ${_game!.fastestTime.toString()}'),
           actions: [
             TextButton(
               onPressed: () {
@@ -233,6 +233,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 }
 
+// ignore: must_be_immutable
 class FlutterMapWidget extends StatelessWidget {
   final UbahnGame? game;
   bool gameStarted;

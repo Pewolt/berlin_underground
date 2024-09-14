@@ -1,32 +1,37 @@
+import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:csv/csv.dart';
 
 class TimesLoader {
-  final String csvPath;
+  final String jsonPath;
   final Map<String, Map<String, int>> times = {}; // Zeiten zwischen den Stationen
 
-  TimesLoader(this.csvPath, Map<String, Map<String, int>> times);
+  TimesLoader(this.jsonPath);
 
-  // Lade die Zeiten aus der CSV-Datei
+  // Lade die Zeiten aus der JSON-Datei
   Future<void> loadTimes() async {
-    String csvData = await rootBundle.loadString(csvPath);
-    List<List<dynamic>> csvTable = const CsvToListConverter().convert(csvData);
-
-    List<String> stations = []; // Liste der Stationen aus der ersten Zeile
-
-    // Fülle die Liste der Stationen aus der ersten Zeile der CSV-Datei
-    for (int i = 1; i < csvTable[0].length; i++) {
-      stations.add(csvTable[0][i].toString()); // Konvertiere zu String
-    }
-
-    // Durchlaufe die restlichen Zeilen und erstelle die Zeit-Matrix
-    for (int i = 1; i < csvTable.length; i++) {
-      String fromStation = csvTable[i][0].toString(); // Station aus der ersten Spalte
+    // JSON-Datei als String einlesen
+    String jsonString = await rootBundle.loadString(jsonPath, cache: false);
+    
+    // JSON-String parsen
+    Map<String, dynamic> jsonData = jsonDecode(jsonString);
+    
+    // Extrahiere die Indexe, Spalten und Daten
+    List<String> index = List<String>.from(jsonData['index']);
+    List<String> columns = List<String>.from(jsonData['columns']);
+    List<List<dynamic>> data = List<List<dynamic>>.from(jsonData['data']);
+    
+    // Erstelle die Zeit-Matrix
+    for (int i = 0; i < index.length; i++) {
+      String fromStation = index[i];
       times[fromStation] = {};
-
-      for (int j = 1; j < csvTable[i].length; j++) {
-        String toStation = stations[j - 1].toString(); // Zielstation
-        int time = int.tryParse(csvTable[i][j].toString()) ?? -1; // Zeit sicherstellen
+      
+      for (int j = 0; j < columns.length; j++) {
+        String toStation = columns[j];
+        dynamic timeValue = data[i][j];
+        
+        // Konvertiere das Zeitwert in int, falls möglich
+        int time = (timeValue is num) ? timeValue.toInt() : -1;
+        
         times[fromStation]![toStation] = time;
       }
     }
