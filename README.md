@@ -1,7 +1,3 @@
-Hier ist der aktualisierte Text mit der neuen Ordnerstruktur:
-
----
-
 # Berlin Underground Controller
 
 *[Startbildschirm](https://cloud.bht-berlin.de/index.php/apps/files_sharing/publicpreview/6GXxKEQH4TX8saA?file=/&fileId=49995263&x=2892&y=1526&a=true&etag=fcae04eafa60b3fe6653ea3748163a66)*
