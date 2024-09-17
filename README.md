@@ -4,7 +4,7 @@ Hier ist der aktualisierte Text mit der neuen Ordnerstruktur:
 
 # Berlin Underground Controller
 
-*[https://cloud.bht-berlin.de/index.php/apps/files_sharing/publicpreview/6GXxKEQH4TX8saA?file=/&fileId=49995263&x=2892&y=1526&a=true&etag=fcae04eafa60b3fe6653ea3748163a66]*
+*[Startbildschirm](https://cloud.bht-berlin.de/index.php/apps/files_sharing/publicpreview/6GXxKEQH4TX8saA?file=/&fileId=49995263&x=2892&y=1526&a=true&etag=fcae04eafa60b3fe6653ea3748163a66)*
 
 ## Überblick
 
@@ -12,7 +12,7 @@ Hier ist der aktualisierte Text mit der neuen Ordnerstruktur:
 
 Das Spiel wurde mit Flutter entwickelt und verwendet geografische Daten, um das U-Bahn-Netzwerk genau darzustellen, einschließlich Stationen, Linien und Fahrzeiten zwischen den Stationen. Es bietet eine unterhaltsame Möglichkeit, das Berliner U-Bahn-Netz zu erkunden und gleichzeitig die optimale Route zu finden.
 
-*[https://cloud.bht-berlin.de/index.php/apps/files_sharing/publicpreview/eTy38JCSdrdQrKb?file=/&fileId=49995261&x=2892&y=1526&a=true&etag=f36e3956371fa884c8d3db2f1f9c0da4]*
+*[Spielverlauf](https://cloud.bht-berlin.de/index.php/apps/files_sharing/publicpreview/eTy38JCSdrdQrKb?file=/&fileId=49995261&x=2892&y=1526&a=true&etag=f36e3956371fa884c8d3db2f1f9c0da4)*
 
 ## Features
 
