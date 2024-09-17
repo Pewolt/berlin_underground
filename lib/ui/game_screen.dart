@@ -40,7 +40,7 @@ class _GameScreenState extends State<GameScreen> {
       appBar: AppBar(
         title: _gameStarted && _game!.currentStation != null
             ? Text(
-                'Zeit: ${_game!.traveldTime} min | Aktuelle Station: ${_game!.currentStation!.name} | Ziel: ${_game!.endStation!.name}',
+                'Zeit: ${_game!.traveledTime} min | Aktuelle Station: ${_game!.currentStation!.name} | Ziel: ${_game!.endStation!.name}',
                 style: const TextStyle(fontSize: 16),
               )
             : const Text('Berlin underground controller'),
@@ -93,7 +93,7 @@ class _GameScreenState extends State<GameScreen> {
                         children: [
                           const Text('Spiel beendet!', style: TextStyle(fontSize: 24)),
                           const SizedBox(height: 20),
-                          Text('Gefahrene Zeit: ${_game!.traveldTime} min'),
+                          Text('Gefahrene Zeit: ${_game!.traveledTime} min'),
                           Text('Bestmögliche Zeit: ${_game!.fastestTime} min'),
                           const SizedBox(height: 20),
                           ElevatedButton(
@@ -131,12 +131,12 @@ class _GameScreenState extends State<GameScreen> {
           child: Column(
             children: [
               Text('Linie ${availableLines[0].name} wählen:'),
-              _buildSquareButton('Richtung ${availableLines[0].getLastStation().name}', () {
+              _buildSquareButton('Richtung ${availableLines[0].lastStation.name}', () {
                 setState(() {
                   _game!.chooseLineAndDirection(availableLines[0], true);
                 });
               }),
-              _buildSquareButton('Richtung ${availableLines[0].getFirstStation().name}', () {
+              _buildSquareButton('Richtung ${availableLines[0].firstStation.name}', () {
                 setState(() {
                   _game!.chooseLineAndDirection(availableLines[0], false);
                 });
@@ -162,12 +162,12 @@ class _GameScreenState extends State<GameScreen> {
                   Column(
                     children: [
                       Text('Linie ${line.name}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                      _buildSquareButton('Richtung ${line.getLastStation().name}', () {
+                      _buildSquareButton('Richtung ${line.lastStation.name}', () {
                         setState(() {
                           _game!.chooseLineAndDirection(line, true);
                         });
                       }),
-                      _buildSquareButton('Richtung ${line.getFirstStation().name}', () {
+                      _buildSquareButton('Richtung ${line.firstStation.name}', () {
                         setState(() {
                           _game!.chooseLineAndDirection(line, false);
                         });
@@ -190,7 +190,7 @@ class _GameScreenState extends State<GameScreen> {
             }),
           _buildSquareButton('Weiterfahren', () {
             setState(() {
-              _game!.moveToNextStation(() => _showMessage(context, "Sackgasse! Drehe um."));
+              _game!.moveToNextStation((_) => _showMessage(context, "Sackgasse! Drehe um."));
             });
           }),
         ],
@@ -230,14 +230,14 @@ class _GameScreenState extends State<GameScreen> {
                 return Column(
                   children: [
                     Text('Linie ${line.name}'),
-                    _buildSquareButton('Richtung ${line.getLastStation().name}', () {
+                    _buildSquareButton('Richtung ${line.lastStation.name}', () {
                       setState(() {
                         _game!.changeLine(line); // Linie wechseln
                         _game!.chooseDirection(true); // Vorwärtsrichtung wählen
                         Navigator.of(context).pop(); // Dialog schließen
                       });
                     }),
-                    _buildSquareButton('Richtung ${line.getFirstStation().name}', () {
+                    _buildSquareButton('Richtung ${line.firstStation.name}', () {
                       setState(() {
                         _game!.changeLine(line); // Linie wechseln
                         _game!.chooseDirection(false); // Rückwärtsrichtung wählen

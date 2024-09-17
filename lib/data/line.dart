@@ -16,64 +16,47 @@ class Line {
     required this.times,
   });
 
-  // Hole die erste Station der Linie (für Richtung Rückwärts)
-  Station getFirstStation() {
-    return stations.first;
-  }
+  /// Hole die erste Station der Linie (für Richtung Rückwärts)
+  Station get firstStation => stations.first;
 
-  // Hole die letzte Station der Linie (für Richtung Vorwärts)
-  Station getLastStation() {
-    return stations.last;
-  }
+  /// Hole die letzte Station der Linie (für Richtung Vorwärts)
+  Station get lastStation => stations.last;
 
-  // Bestimme die nächste Station in einer bestimmten Richtung
+  /// Bestimme die nächste Station in einer bestimmten Richtung
   Station? getNextStation(Station currentStation, bool forward) {
-    int currentIndex = stations.indexOf(currentStation);
+    final int currentIndex = stations.indexOf(currentStation);
     if (currentIndex == -1) return null;
 
     // Fahre vorwärts oder rückwärts, je nach Richtung
-    if (forward) {
-      if (currentIndex < stations.length - 1) {
-        return stations[currentIndex + 1];
-      }
-    } else {
-      if (currentIndex > 0) {
-        return stations[currentIndex - 1];
-      }
+    if (forward && currentIndex < stations.length - 1) {
+      return stations[currentIndex + 1];
+    } else if (!forward && currentIndex > 0) {
+      return stations[currentIndex - 1];
     }
     return null;
   }
 
-  // Hole die Geometrie (LatLng-Punkte) zwischen zwei Stationen
+  /// Hole die Geometrie (LatLng-Punkte) zwischen zwei Stationen
   List<LatLng>? getGeometry(Station fromStation, Station toStation) {
-    if (geometries['${fromStation.name}-${toStation.name}'] != null) {
-      return geometries['${fromStation.name}-${toStation.name}'];
-    } else {
-      return geometries['${toStation.name}-${fromStation.name}'];
-    }
+    return geometries['${fromStation.name}-${toStation.name}'] ??
+        geometries['${toStation.name}-${fromStation.name}'];
   }
 
-  // Hole die Geometrie (LatLng-Punkte) zwischen zwei Stationen
+  /// Hole die Zeit zwischen zwei Stationen
   int? getTime(Station fromStation, Station toStation) {
-    if (times['${fromStation.name}-${toStation.name}'] != null) {
-      return times['${fromStation.name}-${toStation.name}'];
-    } else {
-      return times['${toStation.name}-${fromStation.name}'];
-    }
+    return times['${fromStation.name}-${toStation.name}'] ??
+        times['${toStation.name}-${fromStation.name}'];
   }
 
-  // Überprüfe, ob eine Station Umstiegsmöglichkeiten zu anderen Linien hat
+  /// Überprüfe, ob eine Station Umstiegsmöglichkeiten zu anderen Linien hat
   bool hasConnectionToOtherLines(Station station, List<Line> allLines) {
-    for (var line in allLines) {
-      if (line != this && line.stations.contains(station)) {
-        return true; // Station wird von anderen Linien bedient
-      }
-    }
-    return false;
+    return allLines.any(
+      (line) => line != this && line.stations.contains(station),
+    );
   }
 
-  // Gibt zurück, ob eine bestimmte Station die Endstation ist (nützlich für Richtungsentscheidungen)
+  /// Gibt zurück, ob eine bestimmte Station die Endstation ist
   bool isEndStation(Station station) {
-    return station == getFirstStation() || station == getLastStation();
+    return station == firstStation || station == lastStation;
   }
 }

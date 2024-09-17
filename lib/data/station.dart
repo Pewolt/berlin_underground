@@ -1,5 +1,4 @@
 import 'package:latlong2/latlong.dart';
-
 import 'line.dart';
 
 class Station {
@@ -13,33 +12,30 @@ class Station {
     required this.coordinates,
   });
 
-  // Methode, um festzustellen, ob diese Station von einer bestimmten Linie bedient wird
+  /// Methode, um festzustellen, ob diese Station von einer bestimmten Linie bedient wird
   bool servesLine(Line line) {
-    print('Station: servesLines()');
     return lines.contains(line);
   }
 
-  // Methode, um eine neue Linie hinzuzufügen, wenn sie noch nicht existiert
+  /// Methode, um eine neue Linie hinzuzufügen, wenn sie noch nicht existiert
   void addLine(Line line) {
     if (!lines.contains(line)) {
       lines.add(line);
     }
   }
 
-  // Um die Linien und den Stationsnamen als String anzuzeigen
+  /// Überschreibe toString, um die Linien und den Stationsnamen anzuzeigen
   @override
   String toString() {
-    print('Station: toString()');
-    String lineNames = lines.map((line) => line.name).join(', ');
-    return '$name (Lines: $lineNames)';
+    final String lineNames = lines.map((line) => line.name).join(', ');
+    return '$name (Linien: $lineNames)';
   }
 
-  // Überschreibe equals und hashCode, um Stationen korrekt zu vergleichen
+  /// Überschreibe equals und hashCode, um Stationen korrekt zu vergleichen
   @override
   bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! Station) return false;
-    return name == other.name;
+    return identical(this, other) ||
+        (other is Station && name == other.name);
   }
 
   @override

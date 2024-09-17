@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'package:berlin_underground/data/line.dart';
-import 'package:berlin_underground/data/shortest_time_loader.dart';
 import 'package:berlin_underground/data/station.dart';
+import 'package:berlin_underground/data/times_loader.dart';
+import 'package:berlin_underground/model/traveled_path.dart';
+import 'package:berlin_underground/model/visited_station.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -12,19 +14,17 @@ class UbahnGame {
   Station? endStation;
   Station? currentStation;
   Line? currentLine; // Startet jetzt als null
-  List<TraveledPath> traveledPaths = []; // Speichert die Geometrien mit Farben
+  final List<TraveledPath> traveledPaths = []; // Speichert die Geometrien mit Farben
   bool forward = true;
   bool gameOver = false;
-  int traveldTime = 0;
-  Map<String, int>? fastestPath;
+  int traveledTime = 0;
   int? fastestTime = 0;
 
-  // Verbindungszeiten-Loader und Map
-  final Map<String, Map<String, int>> times = {};
-  TimesLoader? timesLoader;
+  // Verbindungszeiten-Loader
+  late final TimesLoader timesLoader;
 
   // Liste der besuchten Stationen mit zugehöriger Farbe
-  List<VisitedStation> visitedStations = [];
+  final List<VisitedStation> visitedStations = [];
 
   UbahnGame(this.lines) {
     timesLoader = TimesLoader('assets/times.json'); // Lade die Verbindungszeiten
@@ -33,9 +33,9 @@ class UbahnGame {
   Future<void> startGame() async {
     gameOver = false;
     currentLine = null; // Zu Beginn keine aktuelle Linie
-    traveldTime = 0;
-    traveledPaths = [];
-    visitedStations = []; // Liste zurücksetzen
+    traveledTime = 0;
+    traveledPaths.clear();
+    visitedStations.clear();
 
     startStation = _getRandomStation();
     endStation = _getRandomStation(excludeStation: startStation);
@@ -47,43 +47,45 @@ class UbahnGame {
       color: Colors.grey, // Platzhalterfarbe
     ));
 
-    await timesLoader!.loadTimes(); // Lade die Verbindungszeiten
-    fastestTime = timesLoader!.getTimeBetweenStations(startStation!.name, endStation!.name);
+    await timesLoader.loadTimes(); // Lade die Verbindungszeiten
+    fastestTime = timesLoader.getTimeBetweenStations(startStation!.name, endStation!.name);
   }
 
-  // Methode zur Auswahl einer zufälligen Station
+  /// Methode zur Auswahl einer zufälligen Station
   Station _getRandomStation({Station? excludeStation}) {
-    List<Station> allStations = lines.expand((line) => line.stations).toList();
-    allStations = allStations.toSet().toList(); // Duplikate entfernen
+    final List<Station> allStations = lines
+        .expand((line) => line.stations)
+        .toSet()
+        .toList(); // Duplikate entfernen
     if (excludeStation != null) {
       allStations.remove(excludeStation);
     }
     return allStations[Random().nextInt(allStations.length)];
   }
 
-  // Methode, um die verfügbaren Linien an der aktuellen Station zu erhalten
+  /// Methode, um die verfügbaren Linien an der aktuellen Station zu erhalten
   List<Line> getLinesAtCurrentStation() {
     if (currentStation == null) return [];
     return lines.where((line) => line.stations.contains(currentStation)).toList();
   }
 
-  // Methode zur Auswahl der Fahrtrichtung (setzt auch die aktuelle Linie)
+  /// Methode zur Auswahl der Fahrtrichtung (setzt auch die aktuelle Linie)
   void chooseLineAndDirection(Line line, bool forwardDirection) {
     currentLine = line;
     forward = forwardDirection;
 
     // Update der Farbe der aktuellen Station in visitedStations
-    var visitedStation = visitedStations.firstWhere((vs) => vs.station == currentStation);
+    final visitedStation = visitedStations.firstWhere((vs) => vs.station == currentStation);
     visitedStation.color = _colorFromHex(currentLine!.colour);
   }
 
   /// Methode, um die nächste Station zu erreichen
-  void moveToNextStation(Function showMessageCallback) {
+  void moveToNextStation(Function(String) showMessageCallback) {
     if (currentStation != null && currentLine != null) {
-      var nextStation = currentLine!.getNextStation(currentStation!, forward);
+      final nextStation = currentLine!.getNextStation(currentStation!, forward);
       if (nextStation != null) {
         _recordPath(currentStation!, nextStation);
-        traveldTime += currentLine!.getTime(currentStation!, nextStation)!;
+        traveledTime += currentLine!.getTime(currentStation!, nextStation)!;
         currentStation = nextStation;
 
         // Station zur Liste der besuchten Stationen hinzufügen mit der Farbe der aktuellen Linie
@@ -101,7 +103,7 @@ class UbahnGame {
         // Wenn am Ende der Linie: Richtung wechseln und Spieler benachrichtigen
         forward = !forward;
         showMessageCallback("Endstation. Bitte alle aussteigen!");
-        traveldTime += 2;
+        traveledTime += 2;
       }
     } else {
       // Falls keine Linie ausgewählt ist
@@ -109,18 +111,18 @@ class UbahnGame {
     }
   }
 
-  // Methode, um eine Linie zu wechseln
+  /// Methode, um eine Linie zu wechseln
   void changeLine(Line newLine) {
     if (newLine.stations.contains(currentStation)) {
       currentLine = newLine;
       forward = true; // Richtung neu setzen
-      traveldTime += 2;
+      traveledTime += 2;
     }
   }
 
-  // Methode, um die Geometrie und Farbe zwischen zwei Stationen zu speichern
+  /// Methode, um die Geometrie und Farbe zwischen zwei Stationen zu speichern
   void _recordPath(Station fromStation, Station toStation) {
-    var geometry = currentLine!.getGeometry(fromStation, toStation);
+    final geometry = currentLine!.getGeometry(fromStation, toStation);
     if (geometry != null) {
       traveledPaths.add(
         TraveledPath(
@@ -131,32 +133,32 @@ class UbahnGame {
     }
   }
 
-  // Methode zur Auswahl der Fahrtrichtung
+  /// Methode zur Auswahl der Fahrtrichtung
   void chooseDirection(bool forwardDirection) {
     forward = forwardDirection;
   }
 
-  // Zeigt die verfügbaren Linien zum Umsteigen
+  /// Zeigt die verfügbaren Linien zum Umsteigen
   List<Line> getAvailableLines() {
     if (currentStation == null) return [];
 
     return lines.where((line) => line != currentLine && line.stations.contains(currentStation)).toList();
   }
 
-  // Zeigt die aktuelle Richtung an
+  /// Zeigt die aktuelle Richtung an
   String getCurrentDirection() {
-    return forward ? currentLine!.getLastStation().name : currentLine!.getFirstStation().name;
+    return forward ? currentLine!.lastStation.name : currentLine!.firstStation.name;
   }
 
-  // Methode zur Erstellung der Polylines für die Karte
+  /// Methode zur Erstellung der Polylines für die Karte
   List<Polyline> createPolylines(bool gameStarted) {
-    List<Polyline> polylines = [];
+    final List<Polyline> polylines = [];
 
     if (!gameStarted) {
       // Alle Linien in ihren Farben zeichnen
-      for (var line in lines) {
+      for (final line in lines) {
         for (int i = 0; i < line.stations.length - 1; i++) {
-          var geometry = line.getGeometry(line.stations[i], line.stations[i + 1]);
+          final geometry = line.getGeometry(line.stations[i], line.stations[i + 1]);
           if (geometry != null) {
             polylines.add(
               Polyline(
@@ -172,13 +174,14 @@ class UbahnGame {
     }
 
     // Alle nicht befahrenen Verbindungen in Grau zeichnen
-    Set<String> untraveledGeometries = {};
+    final Set<String> untraveledGeometries = {};
 
-    for (var line in lines) {
+    for (final line in lines) {
       for (int i = 0; i < line.stations.length - 1; i++) {
-        var geometry = line.getGeometry(line.stations[i], line.stations[i + 1]);
-        if (geometry != null && !traveledPaths.any((path) => _compareGeometries(path.geometry, geometry))) {
-          String geometryKey = _geometryToString(geometry);
+        final geometry = line.getGeometry(line.stations[i], line.stations[i + 1]);
+        if (geometry != null &&
+            !traveledPaths.any((path) => _compareGeometries(path.geometry, geometry))) {
+          final String geometryKey = _geometryToString(geometry);
           if (!untraveledGeometries.contains(geometryKey)) {
             untraveledGeometries.add(geometryKey);
             polylines.add(
@@ -194,7 +197,7 @@ class UbahnGame {
     }
 
     // Alle Verbindungen, die abgefahren wurden, farbig zeichnen
-    for (var path in traveledPaths) {
+    for (final path in traveledPaths) {
       polylines.add(
         Polyline(
           points: path.geometry,
@@ -207,7 +210,7 @@ class UbahnGame {
     return polylines;
   }
 
-  // Hilfsmethode zum Vergleichen von Geometrien
+  /// Hilfsmethode zum Vergleichen von Geometrien
   bool _compareGeometries(List<LatLng> geom1, List<LatLng> geom2) {
     if (geom1.length != geom2.length) return false;
     for (int i = 0; i < geom1.length; i++) {
@@ -216,30 +219,30 @@ class UbahnGame {
     return true;
   }
 
-  // Hilfsmethode, um eine Geometrie als String darzustellen
+  /// Hilfsmethode, um eine Geometrie als String darzustellen
   String _geometryToString(List<LatLng> geometry) {
     return geometry.map((point) => '${point.latitude},${point.longitude}').join('-');
   }
 
-  // Methode, um eine Linie anhand des Farbwerts darzustellen
+  /// Methode, um eine Linie anhand des Farbwerts darzustellen
   Color _colorFromHex(String hexColor) {
-    hexColor = hexColor.replaceAll('#', '');
-    return Color(int.parse('FF$hexColor', radix: 16));
+    final String cleanedHex = hexColor.replaceAll('#', '');
+    return Color(int.parse('FF$cleanedHex', radix: 16));
   }
 
-  // Angepasste Methode zur Erstellung der Marker
+  /// Methode zur Erstellung der Marker
   List<Marker> createMarkers(bool gameStarted) {
-    List<Marker> markers = [];
+    final List<Marker> markers = [];
 
     if (!gameStarted) {
       return markers;
     }
 
     // Bereits besuchte Stationen markieren
-    for (var visited in visitedStations) {
+    for (final visited in visitedStations) {
       markers.add(
         Marker(
-          point: LatLng(visited.station.coordinates.latitude, visited.station.coordinates.longitude),
+          point: visited.station.coordinates,
           width: 10.0,
           height: 10.0,
           child: Container(
@@ -256,7 +259,7 @@ class UbahnGame {
     if (startStation != null) {
       markers.add(
         Marker(
-          point: LatLng(startStation!.coordinates.latitude, startStation!.coordinates.longitude),
+          point: startStation!.coordinates,
           width: 12.0,
           height: 12.0,
           child: Container(
@@ -273,7 +276,7 @@ class UbahnGame {
     if (endStation != null) {
       markers.add(
         Marker(
-          point: LatLng(endStation!.coordinates.latitude, endStation!.coordinates.longitude),
+          point: endStation!.coordinates,
           width: 12.0,
           height: 12.0,
           child: Container(
@@ -290,7 +293,7 @@ class UbahnGame {
     if (currentStation != null) {
       markers.add(
         Marker(
-          point: LatLng(currentStation!.coordinates.latitude, currentStation!.coordinates.longitude),
+          point: currentStation!.coordinates,
           width: 14.0,
           height: 14.0,
           child: Container(
@@ -306,26 +309,4 @@ class UbahnGame {
 
     return markers;
   }
-}
-
-// Klasse zur Speicherung der abgefahrenen Geometrien und deren Farben
-class TraveledPath {
-  final List<LatLng> geometry;
-  final Color color;
-
-  TraveledPath({
-    required this.geometry,
-    required this.color,
-  });
-}
-
-// Neue Klasse zur Speicherung der besuchten Stationen und deren Farben
-class VisitedStation {
-  final Station station;
-  Color color;
-
-  VisitedStation({
-    required this.station,
-    required this.color,
-  });
 }
