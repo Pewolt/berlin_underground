@@ -209,7 +209,7 @@ Die Projektstruktur ist wie folgt organisiert:
    - Sie können Ihre Gesamtzeit und die optimale Zeit einsehen.
    - Option, das Spiel neu zu starten.
 
-*[[Gameplay-Video](https://cloud.bht-berlin.de/index.php/s/G368xeqEcZm5Tg4)]*
+*[Gameplay-Video](https://cloud.bht-berlin.de/index.php/s/G368xeqEcZm5Tg4)*
 
 ## Datenquellen und Genauigkeit
 
