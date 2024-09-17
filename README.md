@@ -210,7 +210,8 @@ Die Projektstruktur ist wie folgt organisiert:
 ## Datenquellen und Genauigkeit
 
 - **GeoJSON-Daten**: Die U-Bahn-Netzwerkdaten wurden auf Basis von OpenStreetMap-Daten nachmodelliert.
-- **Fahrzeiten**: Basieren auf realistischen Schätzungen und sind in `times.json` gespeichert.
+- **Fahrzeiten**: Basieren auf offiziellen Daten.
+- **times.json**: Basiert auf Shortest-Path Berechnungen in der analyse.py. Als Umsteigezeit wurde immer 2 Minuten festgelegt.
 - **Genauigkeit**: Obwohl wir uns bemüht haben, die Daten so genau wie möglich zu halten, können aufgrund von Vereinfachungen einige Abweichungen auftreten.
 
 ## Entwicklungshinweise
