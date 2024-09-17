@@ -1,8 +1,8 @@
 import 'dart:convert';
+import 'package:berlin_underground/models/line.dart';
+import 'package:berlin_underground/models/station.dart';
 import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
-import 'line.dart';
-import 'station.dart';
 
 class DataLoader {
   final String geoJsonPath;

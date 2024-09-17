@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'ui/game_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized(); // Initialisiert die Widgets-Bindings
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-  ]).then((_) {
-    runApp(MyApp()); // Starte die App erst nach Abschluss der Orientierungsänderung
-  });
+  runApp(const BerlinUndergroundApp());
 }
 
-class MyApp extends StatelessWidget {
+class BerlinUndergroundApp extends StatelessWidget {
+  const BerlinUndergroundApp({super.key});
+
   @override
   Widget build(BuildContext context) {
+    // Haupt-App-Widget mit Theme und Startbildschirm
     return MaterialApp(
-      home: GameScreen(),
+      title: 'Berlin Underground Controller',
+      theme: ThemeData(
+        primarySwatch: Colors.blueGrey,
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blueGrey).copyWith(
+          secondary: Colors.amberAccent,  // Ersetzt accentColor durch colorScheme.secondary
+        ),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(fontSize: 16.0),  // Korrigiert: bodyText1 zu bodyMedium
+        ),
+      ),
+      home: const HomeScreen(),
     );
   }
 }

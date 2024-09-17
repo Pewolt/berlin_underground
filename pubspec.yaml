@@ -35,6 +35,7 @@ dependencies:
   graphs: ^2.3.2
   latlong2: 0.9.1
   csv: ^6.0.0
+  shared_preferences: ^2.0.9
 
 
   # The following adds the Cupertino Icons font to your application.
