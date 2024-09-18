@@ -2,6 +2,23 @@
 
 ![Startbildschirm](https://cloud.bht-berlin.de/index.php/apps/files_sharing/publicpreview/6GXxKEQH4TX8saA?file=/&fileId=49995263&x=2892&y=1526&a=true&etag=fcae04eafa60b3fe6653ea3748163a66)
 
+## App Idee und Zielsetzung
+Das Berliner Ubahn Netz ist das größte in Deutschland. Es ist mit 9 Linien und 175 Bahnhöfen sehr komplex. Für neue Einwohner oder Studenten die nach Berlin ziehen ist es eine Herausforderung sich zu orientieren. Die verschiedenen Stationen und Umsteigebahnhöfe sind sehr vielseitig in verschiedene Richtungen nutzbar. Eine Methode das U-Bahnnetz zu lernen ist es dieses interaktiv und spielerisch zu erfassen. Wir haben mit dieser Idee eine spielerische Lernapp verfolgt, in welcher der Nutzer die optimale Verbindung selbst versucht zu erfahren. Das Kernelement dabei ist die gefahrene Zeit.
+
+Aktuell gibt es keine App die diesen spielerischen Ansatz verfolgt. Es gibt sehr viele Apps mit Übersichtsplänen, Karten sowie Routing welche einem die optimale Verbindung vorgeben. Oftmals ist man im Alltag des Berliner ÖPNV jedoch angewiesen „outside-the-box“ zu denken da es jederzeit zu Störungen, Ausfällen oder Baumaßnahmen kommen kann. Dabei hilft eine umfangreiche Kenntnis über das Streckennetz. Obwohl das Kernelement die Zeit ist, gibt es in einem Netzwerk keine falsche Verbindung.
+
+## Zielgruppe
+Die Zielgruppe ist definiert als berlinfremde Personen im Alter von +18 Jahren. Dies hat den Grund, dass Erwachsene ab 18 Jahren, vor allem in Städten, U-Bahn-Systeme oft täglich für den Weg zur Arbeit, zur Universität oder für Freizeitaktivitäten nutzen. Die App kann dazu beitragen, die Navigation in einer komplexen Stadtlandschaft zu verbessern. Das Wissen über optimale Verbindungen spart Zeit und Stress im Alltag und hilft durch den Gameification Aspekt schneller ein räumliches Vorstellungsvermögen über die Stadt Berlin zu erwerben.
+
+## Ausblick auf mögliche Verbesserungen oder Features
+
+Das U-Bahnnetz lässt sich mit dem S-Bahn und Tram-Netz erweitern und würde für einen höheren Schwierigkeitsgrad sorgen.
+Ranglisten würden ebenfalls den Wettbewerb gegen sich selbst und andere fördern und einen Anreiz zu Nutzung geben. 
+Bestimmte Ziele innerhalb Berlins oder entlang eines Weges können ebenfalls dazu beitragen den Spielspaß zu verlängern sowie den Schwierigkeitsgrad erhöhen.
+Ein realistischer Modus bei den Störungen auf der Stecke vorkommen.
+
+---
+
 ## Überblick
 
 **Berlin Underground Controller** ist ein interaktives Simulationsspiel, das es Spielern ermöglicht, das Berliner U-Bahn-Netz zu navigieren. Ziel ist es, von einer zufällig zugewiesenen Startstation zu einer zufälligen Zielstation in der kürzest möglichen Zeit zu gelangen, wobei realistische Reisebedingungen und Einschränkungen simuliert werden.
